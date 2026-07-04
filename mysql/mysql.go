@@ -192,7 +192,7 @@ func (m *Mysql) ConnectWithTimeout(timeout time.Duration) (*sql.DB, error) {
 ConnectionString returns the local MySQL connection string.
 */
 func (m *Mysql) ConnectionString() string {
-	return fmt.Sprintf("%s:%s@tcp(localhost:%s)/%s", m.username, m.password, m.port, m.database)
+	return fmt.Sprintf("%s:%s@tcp(127.0.0.1:%s)/%s", m.username, m.password, m.port, m.database)
 }
 
 /*
@@ -209,7 +209,7 @@ Endpoints returns named MySQL endpoints.
 */
 func (m *Mysql) Endpoints() map[string]string {
 	return map[string]string{
-		m.name: "localhost:" + m.port,
+		m.name: "127.0.0.1:" + m.port,
 	}
 }
 

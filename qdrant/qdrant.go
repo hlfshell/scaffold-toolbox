@@ -136,14 +136,14 @@ func (q *Qdrant) Create(ctx context.Context) error {
 Endpoint returns the local Qdrant REST endpoint.
 */
 func (q *Qdrant) Endpoint() string {
-	return fmt.Sprintf("http://localhost:%s", q.restPort)
+	return fmt.Sprintf("http://127.0.0.1:%s", q.restPort)
 }
 
 /*
 GRPCEndpoint returns the local Qdrant gRPC endpoint.
 */
 func (q *Qdrant) GRPCEndpoint() string {
-	return fmt.Sprintf("localhost:%s", q.grpcPort)
+	return fmt.Sprintf("127.0.0.1:%s", q.grpcPort)
 }
 
 /*

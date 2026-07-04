@@ -181,7 +181,7 @@ func (p *Postgres) ConnectionString() string {
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		p.username,
 		p.password,
-		"localhost",
+		"127.0.0.1",
 		p.port,
 		p.database,
 	)
@@ -208,7 +208,7 @@ Endpoints returns named Postgres endpoints.
 */
 func (p *Postgres) Endpoints() map[string]string {
 	return map[string]string{
-		p.name: "localhost:" + p.port,
+		p.name: "127.0.0.1:" + p.port,
 	}
 }
 

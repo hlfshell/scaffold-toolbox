@@ -26,6 +26,7 @@ type LocalStack struct {
 	secretKey string
 	port      string
 	services  []string
+	timeout   time.Duration
 }
 
 /*
@@ -34,7 +35,8 @@ passed to LocalStack through the SERVICES environment variable.
 */
 func NewLocalStack(name string, tag string, services ...string) (*LocalStack, error) {
 	env := map[string]string{
-		"DEBUG": "0",
+		"DEBUG":          "0",
+		"GATEWAY_LISTEN": "0.0.0.0:4566",
 	}
 	if len(services) > 0 {
 		env["SERVICES"] = strings.Join(services, ",")
@@ -58,6 +60,7 @@ func NewLocalStack(name string, tag string, services ...string) (*LocalStack, er
 		accessKey: "test",
 		secretKey: "test",
 		services:  services,
+		timeout:   3 * time.Minute,
 	}, nil
 }
 
@@ -92,6 +95,15 @@ func (l *LocalStack) SetNamePrefix(prefix string) {
 }
 
 /*
+WithReadyTimeout changes how long Create waits for the LocalStack health
+endpoint.
+*/
+func (l *LocalStack) WithReadyTimeout(timeout time.Duration) *LocalStack {
+	l.timeout = timeout
+	return l
+}
+
+/*
 Create starts LocalStack with ctx and waits for its health
 endpoint to respond.
 */
@@ -104,7 +116,7 @@ func (l *LocalStack) Create(ctx context.Context) error {
 	ports := l.container.GetPorts()
 	l.port = ports["4566"]
 
-	err = scaffold.WaitForHTTP(ctx, l.EndpointURL()+"/_localstack/health", 200, 60*time.Second)
+	err = scaffold.WaitForHTTP(ctx, l.EndpointURL()+"/_localstack/health", 200, l.timeout)
 	if err != nil {
 		l.container.Cleanup(context.WithoutCancel(ctx))
 		return fmt.Errorf("localstack failed to become ready: %w", err)
@@ -117,7 +129,7 @@ func (l *LocalStack) Create(ctx context.Context) error {
 EndpointURL returns the local LocalStack edge endpoint.
 */
 func (l *LocalStack) EndpointURL() string {
-	return fmt.Sprintf("http://localhost:%s", l.port)
+	return fmt.Sprintf("http://127.0.0.1:%s", l.port)
 }
 
 /*

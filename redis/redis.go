@@ -110,7 +110,7 @@ func (r *Redis) Connect() (*goredis.Client, error) {
 
 func (r *Redis) connectContext(ctx context.Context) (*goredis.Client, error) {
 	client := goredis.NewClient(&goredis.Options{
-		Addr: fmt.Sprintf("localhost:%s", r.port),
+		Addr: fmt.Sprintf("127.0.0.1:%s", r.port),
 		DB:   0,
 	})
 
@@ -159,7 +159,7 @@ Env returns Redis connection environment variables.
 */
 func (r *Redis) Env() map[string]string {
 	return map[string]string{
-		"REDIS_URL": fmt.Sprintf("redis://localhost:%s/0", r.port),
+		"REDIS_URL": fmt.Sprintf("redis://127.0.0.1:%s/0", r.port),
 	}
 }
 
@@ -168,7 +168,7 @@ Endpoints returns named Redis endpoints.
 */
 func (r *Redis) Endpoints() map[string]string {
 	return map[string]string{
-		r.name: fmt.Sprintf("localhost:%s", r.port),
+		r.name: fmt.Sprintf("127.0.0.1:%s", r.port),
 	}
 }
 

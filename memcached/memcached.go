@@ -106,7 +106,7 @@ func (m *Memcached) Create(ctx context.Context) error {
 Connect creates a Memcached client and verifies it with Ping.
 */
 func (m *Memcached) Connect() (*memcache.Client, error) {
-	client := memcache.New(fmt.Sprintf("localhost:%s", m.port))
+	client := memcache.New(fmt.Sprintf("127.0.0.1:%s", m.port))
 
 	err := client.Ping()
 	if err != nil {
@@ -145,7 +145,7 @@ Env returns Memcached connection environment variables.
 */
 func (m *Memcached) Env() map[string]string {
 	return map[string]string{
-		"MEMCACHED_ADDR": fmt.Sprintf("localhost:%s", m.port),
+		"MEMCACHED_ADDR": fmt.Sprintf("127.0.0.1:%s", m.port),
 	}
 }
 
@@ -154,7 +154,7 @@ Endpoints returns named Memcached endpoints.
 */
 func (m *Memcached) Endpoints() map[string]string {
 	return map[string]string{
-		m.name: fmt.Sprintf("localhost:%s", m.port),
+		m.name: fmt.Sprintf("127.0.0.1:%s", m.port),
 	}
 }
 

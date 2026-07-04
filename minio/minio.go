@@ -117,7 +117,9 @@ func (m *MinIO) Create(ctx context.Context) error {
 		return err
 	}
 
-	err = m.Preload(ctx)
+	err = scaffold.WaitFunc(ctx, 30*time.Second, 250*time.Millisecond, func(ctx context.Context) error {
+		return m.Preload(ctx)
+	})
 	if err != nil {
 		m.container.Cleanup(context.WithoutCancel(ctx))
 		return err
@@ -130,14 +132,14 @@ func (m *MinIO) Create(ctx context.Context) error {
 Endpoint returns the local S3-compatible API endpoint.
 */
 func (m *MinIO) Endpoint() string {
-	return fmt.Sprintf("http://localhost:%s", m.apiPort)
+	return fmt.Sprintf("http://127.0.0.1:%s", m.apiPort)
 }
 
 /*
 ConsoleEndpoint returns the local MinIO web console endpoint.
 */
 func (m *MinIO) ConsoleEndpoint() string {
-	return fmt.Sprintf("http://localhost:%s", m.webPort)
+	return fmt.Sprintf("http://127.0.0.1:%s", m.webPort)
 }
 
 /*
@@ -167,7 +169,7 @@ Client creates a MinIO client using the assigned host port and configured
 root credentials.
 */
 func (m *MinIO) Client() (*minioclient.Client, error) {
-	client, err := minioclient.New(fmt.Sprintf("localhost:%s", m.apiPort), &minioclient.Options{
+	client, err := minioclient.New(fmt.Sprintf("127.0.0.1:%s", m.apiPort), &minioclient.Options{
 		Creds:  credentials.NewStaticV4(m.accessKey, m.secretKey, ""),
 		Secure: false,
 	})
