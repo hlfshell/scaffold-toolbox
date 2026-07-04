@@ -2,6 +2,16 @@
 
 Typed MinIO harness for scaffold. It uses the `minio/minio` container image and exposes the S3-compatible API plus the web console.
 
+## Install
+
+```bash
+go get github.com/hlfshell/scaffold-toolbox/minio
+```
+
+```go
+import "github.com/hlfshell/scaffold-toolbox/minio"
+```
+
 ```go
 store, err := minio.NewMinIO("objects", "latest", "minioadmin", "minioadmin")
 store.WithBucket("uploads")

@@ -2,6 +2,16 @@
 
 Typed Redis harness for scaffold. It uses the official `redis` container image.
 
+## Install
+
+```bash
+go get github.com/hlfshell/scaffold-toolbox/redis
+```
+
+```go
+import "github.com/hlfshell/scaffold-toolbox/redis"
+```
+
 ```go
 redis, err := redis.NewRedis("app-redis")
 redis.WithKey("feature:test", "enabled")

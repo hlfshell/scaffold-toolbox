@@ -2,6 +2,16 @@
 
 Typed Qdrant harness for scaffold. It uses the `qdrant/qdrant` container image and exposes REST and gRPC ports.
 
+## Install
+
+```bash
+go get github.com/hlfshell/scaffold-toolbox/qdrant
+```
+
+```go
+import "github.com/hlfshell/scaffold-toolbox/qdrant"
+```
+
 ```go
 q, err := qdrant.NewQdrant("vectors", "latest")
 q.WithCollection(qdrant.CollectionConfig{Name: "docs", Size: 3, Distance: "Cosine"})

@@ -6,24 +6,47 @@ Each toolbox entry is its own Go module so applications can import only the piec
 
 ## Available modules
 
-- `github.com/hlfshell/scaffold-toolbox/postgres` - Postgres service.
-- `github.com/hlfshell/scaffold-toolbox/mysql` - MySQL service.
-- `github.com/hlfshell/scaffold-toolbox/redis` - Redis service.
-- `github.com/hlfshell/scaffold-toolbox/memcached` - Memcached service.
-- `github.com/hlfshell/scaffold-toolbox/qdrant` - Qdrant service.
-- `github.com/hlfshell/scaffold-toolbox/minio` - MinIO service.
-- `github.com/hlfshell/scaffold-toolbox/localstack` - LocalStack service.
-- `github.com/hlfshell/scaffold-toolbox/presets` - composed preset stacks.
-- `github.com/hlfshell/scaffold-toolbox/mongo` - planned MongoDB service.
-- `github.com/hlfshell/scaffold-toolbox/clickhouse` - planned ClickHouse service.
-- `github.com/hlfshell/scaffold-toolbox/weaviate` - planned Weaviate service.
-- `github.com/hlfshell/scaffold-toolbox/trino` - planned Trino service.
-- `github.com/hlfshell/scaffold-toolbox/iceberg` - planned Iceberg service/stack helpers.
-- `github.com/hlfshell/scaffold-toolbox/aws` - planned AWS helper stack.
-- `github.com/hlfshell/scaffold-toolbox/ollama` - planned Ollama service.
-- `github.com/hlfshell/scaffold-toolbox/litellm` - planned LiteLLM service.
-- `github.com/hlfshell/scaffold-toolbox/kubernetes` - planned Kubernetes service/stack helpers.
-- `github.com/hlfshell/scaffold-toolbox/argocd` - planned Argo CD helpers.
-- `github.com/hlfshell/scaffold-toolbox/argo-workflows` - planned Argo Workflows helpers.
+Databases:
+
+- Postgres - relational database service with SQL preload helpers.
+- MySQL - relational database service with SQL preload helpers.
+- MongoDB - planned document database service with document preload helpers.
+- ClickHouse - planned analytical database service with SQL preload helpers.
+
+Caches:
+
+- Redis - key/value cache service with key and seed-function helpers.
+- Memcached - cache service with item preload helpers.
+
+Search and vectors:
+
+- Qdrant - vector database service with collection and point preload helpers.
+- Weaviate - planned vector database service with schema/object preload helpers.
+
+Object storage and cloud:
+
+- MinIO - S3-compatible object storage service with bucket and object preload helpers.
+- LocalStack - local AWS service emulator with AWS SDK configuration helpers.
+- AWS - planned helper stack built around LocalStack for common AWS resources.
+
+Data platforms:
+
+- Trino - planned distributed query engine service with catalog/schema helpers.
+- Iceberg - planned local data lake stack for object storage, catalog, and query workflows.
+
+LLM services:
+
+- Ollama - planned local model server service with model preload helpers.
+- LiteLLM - planned OpenAI-compatible proxy service with provider configuration helpers.
+
+Orchestration:
+
+- Kubernetes - planned local Kubernetes service/stack helpers with kubeconfig and manifest support.
+- Argo CD - planned GitOps helper stack for local Kubernetes workflows.
+- Argo Workflows - planned workflow helper stack for local Kubernetes workflows.
+
+Presets:
+
+- RAG stack - composed Postgres, Qdrant, and MinIO stack for local retrieval-augmented generation workflows.
 
 Each module has its own README with the current status and usage notes.

@@ -2,6 +2,16 @@
 
 Typed Postgres harness for scaffold. It uses the official `postgres` container image.
 
+## Install
+
+```bash
+go get github.com/hlfshell/scaffold-toolbox/postgres
+```
+
+```go
+import "github.com/hlfshell/scaffold-toolbox/postgres"
+```
+
 ```go
 pg, err := postgres.NewPostgres("app-postgres", "16", "user", "pass", "app")
 if err != nil {

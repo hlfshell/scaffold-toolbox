@@ -2,6 +2,16 @@
 
 Preset stacks compose existing scaffold harnesses. They do not duplicate service implementation.
 
+## Install
+
+```bash
+go get github.com/hlfshell/scaffold-toolbox/presets
+```
+
+```go
+import "github.com/hlfshell/scaffold-toolbox/presets"
+```
+
 ## RAG stack
 
 The RAG stack includes Postgres, Qdrant, and MinIO for local RAG app development, agent tests, embedding tests, and document/object workflows.
