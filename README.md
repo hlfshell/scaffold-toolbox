@@ -1,5 +1,9 @@
 # scaffold toolbox
 
+<p align="center">
+  <img src="scaffold.png" alt="scaffold logo" width="240">
+</p>
+
 Premade services and stacks for [scaffold](https://github.com/hlfshell/scaffold).
 
 Each toolbox entry is its own Go module so applications can import only the pieces they need. This repository groups those modules together for development and release, but consumers can depend on individual packages directly.
