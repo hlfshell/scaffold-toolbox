@@ -12,45 +12,45 @@ Each toolbox entry is its own Go module so applications can import only the piec
 
 Databases:
 
-- Postgres - relational database service with SQL preload helpers.
-- MySQL - relational database service with SQL preload helpers.
-- MongoDB - planned document database service with document preload helpers.
-- ClickHouse - planned analytical database service with SQL preload helpers.
+- Postgres - the default choice for app and API tests that need a real relational database.
+- MySQL - useful when production compatibility matters more than using Postgres locally.
+- MongoDB - planned support for document-heavy services and JSON-shaped test data.
+- ClickHouse - planned support for analytics workloads, event stores, and columnar query testing.
 
 Caches:
 
-- Redis - key/value cache service with key and seed-function helpers.
-- Memcached - cache service with item preload helpers.
+- Redis - a general-purpose cache, queue-adjacent store, or coordination dependency for local apps.
+- Memcached - a small cache service for apps that only need simple key/value caching.
 
 Search and vectors:
 
-- Qdrant - vector database service with collection and point preload helpers.
-- Weaviate - planned vector database service with schema/object preload helpers.
+- Qdrant - local vector search for embedding, retrieval, and RAG development.
+- Weaviate - planned support for teams already building against Weaviate's object/schema model.
 
 Object storage and cloud:
 
-- MinIO - S3-compatible object storage service with bucket and object preload helpers.
-- LocalStack - local AWS service emulator with AWS SDK configuration helpers.
-- AWS - planned helper stack built around LocalStack for common AWS resources.
+- MinIO - S3-compatible storage for files, documents, model artifacts, and test uploads.
+- LocalStack - local AWS APIs for services like SQS without reaching out to real cloud accounts.
+- AWS - planned higher-level setup for common LocalStack resources such as buckets, queues, and topics.
 
 Data platforms:
 
-- Trino - planned distributed query engine service with catalog/schema helpers.
-- Iceberg - planned local data lake stack for object storage, catalog, and query workflows.
+- Trino - planned local query engine for testing SQL over object storage and lakehouse-style data.
+- Iceberg - planned stack for data lake experiments that need storage, catalog, and query pieces together.
 
 LLM services:
 
-- Ollama - planned local model server service with model preload helpers.
-- LiteLLM - planned OpenAI-compatible proxy service with provider configuration helpers.
+- Ollama - planned local model runtime for offline or laptop-friendly LLM development.
+- LiteLLM - planned OpenAI-compatible proxy for testing apps across multiple model providers.
 
 Orchestration:
 
-- Kubernetes - planned local Kubernetes service/stack helpers with kubeconfig and manifest support.
-- Argo CD - planned GitOps helper stack for local Kubernetes workflows.
-- Argo Workflows - planned workflow helper stack for local Kubernetes workflows.
+- Kubernetes - planned local cluster helpers for projects that need to test against Kubernetes directly.
+- Argo CD - planned GitOps control plane for local deployment and sync workflows.
+- Argo Workflows - planned workflow engine for testing pipeline and job orchestration locally.
 
-Presets:
+Stacks:
 
-- RAG stack - composed Postgres, Qdrant, and MinIO stack for local retrieval-augmented generation workflows.
+- RAG stack - a ready-made Postgres, Qdrant, and MinIO environment for document and retrieval apps.
 
 Each module has its own README with the current status and usage notes.
