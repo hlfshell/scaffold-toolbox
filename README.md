@@ -1,7 +1,7 @@
 # scaffold toolbox
 
 <p align="center">
-  <img src="scaffold.png" alt="scaffold logo" width="240">
+  <img src="scaffold.png" alt="scaffold logo" width="320">
 </p>
 
 Premade services and stacks for [scaffold](https://github.com/hlfshell/scaffold).
