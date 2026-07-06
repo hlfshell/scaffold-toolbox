@@ -14,8 +14,8 @@ Databases:
 
 - Postgres - the default choice for app and API tests that need a real relational database.
 - MySQL - useful when production compatibility matters more than using Postgres locally.
-- MongoDB - planned support for document-heavy services and JSON-shaped test data.
-- ClickHouse - planned support for analytics workloads, event stores, and columnar query testing.
+- MongoDB - document database service with official Go client access and document preload helpers.
+- ClickHouse - analytics database service with HTTP/native endpoints and SQL preload helpers.
 
 Caches:
 
@@ -25,32 +25,49 @@ Caches:
 Search and vectors:
 
 - Qdrant - local vector search for embedding, retrieval, and RAG development.
-- Weaviate - planned support for teams already building against Weaviate's object/schema model.
+- Weaviate - vector database service with schema and object preload helpers.
 
 Object storage and cloud:
 
 - MinIO - S3-compatible storage for files, documents, model artifacts, and test uploads.
-- LocalStack - local AWS APIs for services like SQS without reaching out to real cloud accounts.
-- AWS - planned higher-level setup for common LocalStack resources such as buckets, queues, and topics.
+- AWS - MiniStack-backed local AWS stack with setup helpers for buckets, queues, and topics.
 
 Data platforms:
 
-- Trino - planned local query engine for testing SQL over object storage and lakehouse-style data.
-- Iceberg - planned stack for data lake experiments that need storage, catalog, and query pieces together.
+- Trino - local SQL query engine with generated catalog files and an HTTP query helper.
+- Iceberg - local lakehouse stack composed from MinIO, Iceberg REST catalog, and Trino.
 
 LLM services:
 
-- Ollama - planned local model runtime for offline or laptop-friendly LLM development.
-- LiteLLM - planned OpenAI-compatible proxy for testing apps across multiple model providers.
+- Ollama - local model runtime with endpoint helpers and optional model pulls.
+- LiteLLM - OpenAI-compatible proxy for testing apps across multiple model providers.
 
 Orchestration:
 
-- Kubernetes - planned local cluster helpers for projects that need to test against Kubernetes directly.
-- Argo CD - planned GitOps control plane for local deployment and sync workflows.
-- Argo Workflows - planned workflow engine for testing pipeline and job orchestration locally.
+- Kubernetes - Docker-backed k3s quickstart with host kubeconfig, manifest loading, status, and kubectl passthrough.
+- Argo CD - k3s-backed quickstart that installs Argo CD and application manifests.
+- Argo Workflows - k3s-backed quickstart that installs Argo Workflows and workflow manifests.
 
 Stacks:
 
 - RAG stack - a ready-made Postgres, Qdrant, and MinIO environment for document and retrieval apps.
 
 Each module has its own README with the current status and usage notes.
+
+## Testing
+
+The default toolbox suite runs compile checks and Docker smoke tests that are
+reasonable for day-to-day development:
+
+```bash
+go test ./postgres/... ./mysql/... ./redis/... ./memcached/... ./qdrant/... ./minio/... ./stacks/... ./mongo/... ./clickhouse/... ./weaviate/... ./trino/... ./iceberg/... ./aws/... ./ollama/... ./litellm/... ./kubernetes/... ./argocd/... ./argo-workflows/...
+```
+
+Some tests are gated because they start heavier control planes or model
+services:
+
+```bash
+SCAFFOLD_TOOLBOX_KUBERNETES_TESTS=1 go test ./kubernetes -count=1 -timeout 10m
+SCAFFOLD_TOOLBOX_ARGO_TESTS=1 go test ./argocd ./argo-workflows -count=1 -timeout 20m
+SCAFFOLD_TOOLBOX_LLM_TESTS=1 go test ./ollama ./litellm -count=1 -timeout 20m
+```

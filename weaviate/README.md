@@ -1,6 +1,8 @@
 # scaffold toolbox weaviate
 
-Weaviate service module placeholder.
+Weaviate service for scaffold. It starts a local Weaviate instance with
+anonymous access and no default vectorizer, then can create schema classes
+and objects through the REST API.
 
 ## Install
 
@@ -12,4 +14,16 @@ go get github.com/hlfshell/scaffold-toolbox/weaviate
 import "github.com/hlfshell/scaffold-toolbox/weaviate"
 ```
 
-Status: planned. This module should implement `scaffold.Service`, support inherited labels, support shared Docker networks, expose endpoint helpers, and include schema/object preload helpers.
+## Example
+
+```go
+vectors, err := weaviate.NewWeaviate("vectors", "latest")
+if err != nil {
+	return err
+}
+
+vectors.WithClass(weaviate.Class{
+	Class: "Document",
+	Properties: []weaviate.Property{{Name: "title", DataType: []string{"text"}}},
+})
+```

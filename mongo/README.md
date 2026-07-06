@@ -1,6 +1,8 @@
 # scaffold toolbox mongo
 
-MongoDB service module placeholder.
+MongoDB service for scaffold. It starts the official `mongo` container,
+returns an official Go MongoDB client, and can insert seed documents after
+the database is ready.
 
 ## Install
 
@@ -12,4 +14,13 @@ go get github.com/hlfshell/scaffold-toolbox/mongo
 import "github.com/hlfshell/scaffold-toolbox/mongo"
 ```
 
-Status: planned. This module should implement `scaffold.Service`, support inherited labels, support shared Docker networks, expose a MongoDB client, and include document preload helpers.
+## Example
+
+```go
+documents, err := mongo.NewMongo("documents", "latest", "root", "secret", "app")
+if err != nil {
+	return err
+}
+
+documents.WithDocuments("users", map[string]any{"name": "Ada"})
+```

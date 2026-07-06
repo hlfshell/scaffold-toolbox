@@ -25,7 +25,7 @@ if err != nil {
 }
 defer pg.Cleanup(context.WithoutCancel(ctx))
 
-db, err := pg.ConnectWithTimeout(10 * time.Second)
+db, err := pg.ConnectWithTimeout(ctx, 10*time.Second)
 ```
 
 Preload helpers can run SQL strings or SQL files. Cleanup closes the database handle and removes the container and anonymous volumes.

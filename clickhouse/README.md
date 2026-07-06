@@ -1,6 +1,8 @@
 # scaffold toolbox clickhouse
 
-ClickHouse service module placeholder.
+ClickHouse service for scaffold. It starts `clickhouse/clickhouse-server`,
+waits for the HTTP API, exposes HTTP and native endpoints, and can run SQL
+setup from strings or files.
 
 ## Install
 
@@ -12,4 +14,13 @@ go get github.com/hlfshell/scaffold-toolbox/clickhouse
 import "github.com/hlfshell/scaffold-toolbox/clickhouse"
 ```
 
-Status: planned. This module should implement `scaffold.Service`, support inherited labels, support shared Docker networks, expose a ClickHouse client, and include SQL preload helpers.
+## Example
+
+```go
+analytics, err := clickhouse.NewClickHouse("analytics", "latest", "default", "secret", "events")
+if err != nil {
+	return err
+}
+
+analytics.WithSQL("CREATE TABLE IF NOT EXISTS events.local (id UInt64) ENGINE = Memory")
+```

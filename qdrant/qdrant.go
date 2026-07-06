@@ -24,7 +24,7 @@ type Qdrant struct {
 	name      string
 	restPort  string
 	grpcPort  string
-	preloads  []func(*Qdrant) error
+	preloads  []func(context.Context, *Qdrant) error
 }
 
 /*
@@ -69,7 +69,7 @@ func NewQdrant(name string, tag string) (*Qdrant, error) {
 			Timeout: 5 * time.Second,
 		},
 		name:     name,
-		preloads: []func(*Qdrant) error{},
+		preloads: []func(context.Context, *Qdrant) error{},
 	}, nil
 }
 
@@ -123,7 +123,7 @@ func (q *Qdrant) Create(ctx context.Context) error {
 		return fmt.Errorf("qdrant failed to become ready: %w", err)
 	}
 
-	err = q.Preload()
+	err = q.Preload(ctx)
 	if err != nil {
 		q.container.Cleanup(context.WithoutCancel(ctx))
 		return err
@@ -170,7 +170,7 @@ func (q *Qdrant) Endpoints() map[string]string {
 CreateCollection creates or updates a Qdrant collection using the REST
 API.
 */
-func (q *Qdrant) CreateCollection(config CollectionConfig) error {
+func (q *Qdrant) CreateCollection(ctx context.Context, config CollectionConfig) error {
 	if config.Distance == "" {
 		config.Distance = "Cosine"
 	}
@@ -182,25 +182,25 @@ func (q *Qdrant) CreateCollection(config CollectionConfig) error {
 		},
 	}
 
-	return q.doJSON(http.MethodPut, fmt.Sprintf("/collections/%s", config.Name), body, nil)
+	return q.doJSON(ctx, http.MethodPut, fmt.Sprintf("/collections/%s", config.Name), body, nil)
 }
 
 /*
 UpsertPoints inserts or updates points in a Qdrant collection.
 */
-func (q *Qdrant) UpsertPoints(collection string, points []Point) error {
+func (q *Qdrant) UpsertPoints(ctx context.Context, collection string, points []Point) error {
 	body := map[string]any{
 		"points": points,
 	}
 
-	return q.doJSON(http.MethodPut, fmt.Sprintf("/collections/%s/points?wait=true", collection), body, nil)
+	return q.doJSON(ctx, http.MethodPut, fmt.Sprintf("/collections/%s/points?wait=true", collection), body, nil)
 }
 
 /*
 UpsertPointsFromJSON loads points from a JSON file and upserts them into
 a collection.
 */
-func (q *Qdrant) UpsertPointsFromJSON(collection string, path string) error {
+func (q *Qdrant) UpsertPointsFromJSON(ctx context.Context, collection string, path string) error {
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -212,15 +212,15 @@ func (q *Qdrant) UpsertPointsFromJSON(collection string, path string) error {
 		return err
 	}
 
-	return q.UpsertPoints(collection, points)
+	return q.UpsertPoints(ctx, collection, points)
 }
 
 /*
 WithCollection registers a collection to create after Qdrant is ready.
 */
 func (q *Qdrant) WithCollection(config CollectionConfig) *Qdrant {
-	q.preloads = append(q.preloads, func(qdrant *Qdrant) error {
-		return qdrant.CreateCollection(config)
+	q.preloads = append(q.preloads, func(ctx context.Context, qdrant *Qdrant) error {
+		return qdrant.CreateCollection(ctx, config)
 	})
 
 	return q
@@ -230,8 +230,8 @@ func (q *Qdrant) WithCollection(config CollectionConfig) *Qdrant {
 WithPoints registers points to upsert after Qdrant is ready.
 */
 func (q *Qdrant) WithPoints(collection string, points []Point) *Qdrant {
-	q.preloads = append(q.preloads, func(qdrant *Qdrant) error {
-		return qdrant.UpsertPoints(collection, points)
+	q.preloads = append(q.preloads, func(ctx context.Context, qdrant *Qdrant) error {
+		return qdrant.UpsertPoints(ctx, collection, points)
 	})
 
 	return q
@@ -240,9 +240,9 @@ func (q *Qdrant) WithPoints(collection string, points []Point) *Qdrant {
 /*
 Preload runs all registered Qdrant preload functions.
 */
-func (q *Qdrant) Preload() error {
+func (q *Qdrant) Preload(ctx context.Context) error {
 	for _, preload := range q.preloads {
-		err := preload(q)
+		err := preload(ctx, q)
 		if err != nil {
 			return fmt.Errorf("failed to preload qdrant: %w", err)
 		}
@@ -270,13 +270,13 @@ func (q *Qdrant) Logs(ctx context.Context) (logs.LogStreams, error) {
 	return logs.LogStreams{q.name: stream}, nil
 }
 
-func (q *Qdrant) doJSON(method string, path string, input any, output any) error {
+func (q *Qdrant) doJSON(ctx context.Context, method string, path string, input any, output any) error {
 	payload, err := json.Marshal(input)
 	if err != nil {
 		return err
 	}
 
-	request, err := http.NewRequest(method, q.Endpoint()+path, bytes.NewReader(payload))
+	request, err := http.NewRequestWithContext(ctx, method, q.Endpoint()+path, bytes.NewReader(payload))
 	if err != nil {
 		return err
 	}

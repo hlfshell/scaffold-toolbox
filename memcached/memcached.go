@@ -24,13 +24,13 @@ type Memcached struct {
 }
 
 /*
-NewMemcached creates a Memcached harness using the default memcached
-image tag.
+NewMemcached creates a Memcached harness. A blank tag defaults to latest.
 */
-func NewMemcached(name string) (*Memcached, error) {
+func NewMemcached(name string, tag string) (*Memcached, error) {
 	container, err := scaffoldcontainer.NewContainer(
 		name,
 		"memcached",
+		scaffoldcontainer.WithTag(tag),
 		scaffoldcontainer.WithPort("11211", ""),
 	)
 	if err != nil {
@@ -87,13 +87,13 @@ func (m *Memcached) Create(ctx context.Context) error {
 	ports := m.container.GetPorts()
 	m.port = ports["11211"]
 
-	_, err = m.connectWithTimeoutContext(ctx, 10*time.Second)
+	_, err = m.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		m.container.Cleanup(context.WithoutCancel(ctx))
 		return err
 	}
 
-	err = m.Preload()
+	err = m.Preload(ctx)
 	if err != nil {
 		m.container.Cleanup(context.WithoutCancel(ctx))
 		return err
@@ -103,9 +103,9 @@ func (m *Memcached) Create(ctx context.Context) error {
 }
 
 /*
-Connect creates a Memcached client and verifies it with Ping.
+Connect creates a Memcached client with ctx and verifies it with Ping.
 */
-func (m *Memcached) Connect() (*memcache.Client, error) {
+func (m *Memcached) Connect(ctx context.Context) (*memcache.Client, error) {
 	client := memcache.New(fmt.Sprintf("127.0.0.1:%s", m.port))
 
 	err := client.Ping()
@@ -121,16 +121,12 @@ func (m *Memcached) Connect() (*memcache.Client, error) {
 ConnectWithTimeout repeatedly calls Connect until a client is ready or
 the timeout is reached.
 */
-func (m *Memcached) ConnectWithTimeout(timeout time.Duration) (*memcache.Client, error) {
-	return m.connectWithTimeoutContext(context.Background(), timeout)
-}
-
-func (m *Memcached) connectWithTimeoutContext(ctx context.Context, timeout time.Duration) (*memcache.Client, error) {
+func (m *Memcached) ConnectWithTimeout(ctx context.Context, timeout time.Duration) (*memcache.Client, error) {
 	var client *memcache.Client
 
 	err := scaffold.WaitFunc(ctx, timeout, 50*time.Millisecond, func(ctx context.Context) error {
 		var err error
-		client, err = m.Connect()
+		client, err = m.Connect(ctx)
 		return err
 	})
 	if err != nil {
@@ -173,12 +169,12 @@ func (m *Memcached) WithItem(key string, value []byte) *Memcached {
 /*
 Preload writes all registered cache items.
 */
-func (m *Memcached) Preload() error {
+func (m *Memcached) Preload(ctx context.Context) error {
 	if len(m.preloads) == 0 {
 		return nil
 	}
 
-	client, err := m.ConnectWithTimeout(10 * time.Second)
+	client, err := m.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ import "github.com/hlfshell/scaffold-toolbox/redis"
 ```
 
 ```go
-redis, err := redis.NewRedis("app-redis")
+redis, err := redis.NewRedis("app-redis", "latest")
 redis.WithKey("feature:test", "enabled")
 err = redis.Create(ctx)
 defer redis.Cleanup(context.WithoutCancel(ctx))

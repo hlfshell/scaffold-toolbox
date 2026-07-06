@@ -13,7 +13,7 @@ import "github.com/hlfshell/scaffold-toolbox/memcached"
 ```
 
 ```go
-cache, err := memcached.NewMemcached("app-cache")
+cache, err := memcached.NewMemcached("app-cache", "latest")
 cache.WithItem("hello", []byte("world"))
 err = cache.Create(ctx)
 defer cache.Cleanup(context.WithoutCancel(ctx))

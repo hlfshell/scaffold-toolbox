@@ -1,6 +1,8 @@
 # scaffold toolbox trino
 
-Trino service module placeholder.
+Trino service for scaffold. It starts the official Trino coordinator image,
+mounts generated catalog property files, exposes the HTTP endpoint, and can
+submit SQL through Trino's REST API.
 
 ## Install
 
@@ -12,4 +14,13 @@ go get github.com/hlfshell/scaffold-toolbox/trino
 import "github.com/hlfshell/scaffold-toolbox/trino"
 ```
 
-Status: planned. This module should implement `scaffold.Service`, support inherited labels, support shared Docker networks, expose coordinator/client helpers, and include catalog/schema preload helpers.
+## Example
+
+```go
+query, err := trino.NewTrino("query", "latest",
+	trino.WithMemoryCatalog("memory"),
+)
+if err != nil {
+	return err
+}
+```

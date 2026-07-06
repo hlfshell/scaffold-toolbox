@@ -24,12 +24,13 @@ type Redis struct {
 }
 
 /*
-NewRedis creates a Redis harness using the default redis image tag.
+NewRedis creates a Redis harness. A blank tag defaults to latest.
 */
-func NewRedis(name string) (*Redis, error) {
+func NewRedis(name string, tag string) (*Redis, error) {
 	container, err := scaffoldcontainer.NewContainer(
 		name,
 		"redis",
+		scaffoldcontainer.WithTag(tag),
 		scaffoldcontainer.WithPort("6379", ""),
 	)
 	if err != nil {
@@ -86,13 +87,13 @@ func (r *Redis) Create(ctx context.Context) error {
 	ports := r.container.GetPorts()
 	r.port = ports["6379"]
 
-	_, err = r.connectWithTimeoutContext(ctx, 10*time.Second)
+	_, err = r.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		r.container.Cleanup(context.WithoutCancel(ctx))
 		return err
 	}
 
-	err = r.preloadContext(ctx)
+	err = r.Preload(ctx)
 	if err != nil {
 		r.container.Cleanup(context.WithoutCancel(ctx))
 		return err
@@ -102,13 +103,9 @@ func (r *Redis) Create(ctx context.Context) error {
 }
 
 /*
-Connect creates a Redis client and verifies it with PING.
+Connect creates a Redis client with ctx and verifies it with PING.
 */
-func (r *Redis) Connect() (*goredis.Client, error) {
-	return r.connectContext(context.Background())
-}
-
-func (r *Redis) connectContext(ctx context.Context) (*goredis.Client, error) {
+func (r *Redis) Connect(ctx context.Context) (*goredis.Client, error) {
 	client := goredis.NewClient(&goredis.Options{
 		Addr: fmt.Sprintf("127.0.0.1:%s", r.port),
 		DB:   0,
@@ -135,16 +132,12 @@ func (r *Redis) connectContext(ctx context.Context) (*goredis.Client, error) {
 ConnectWithTimeout repeatedly calls Connect until a client is ready or
 the timeout is reached.
 */
-func (r *Redis) ConnectWithTimeout(timeout time.Duration) (*goredis.Client, error) {
-	return r.connectWithTimeoutContext(context.Background(), timeout)
-}
-
-func (r *Redis) connectWithTimeoutContext(ctx context.Context, timeout time.Duration) (*goredis.Client, error) {
+func (r *Redis) ConnectWithTimeout(ctx context.Context, timeout time.Duration) (*goredis.Client, error) {
 	var client *goredis.Client
 
 	err := scaffold.WaitFunc(ctx, timeout, 50*time.Millisecond, func(ctx context.Context) error {
 		var err error
-		client, err = r.connectContext(ctx)
+		client, err = r.Connect(ctx)
 		return err
 	})
 	if err != nil {
@@ -194,16 +187,12 @@ func (r *Redis) WithSeed(fn func(context.Context, *goredis.Client) error) *Redis
 /*
 Preload runs all registered Redis seed functions.
 */
-func (r *Redis) Preload() error {
-	return r.preloadContext(context.Background())
-}
-
-func (r *Redis) preloadContext(ctx context.Context) error {
+func (r *Redis) Preload(ctx context.Context) error {
 	if len(r.preloads) == 0 {
 		return nil
 	}
 
-	client, err := r.connectWithTimeoutContext(ctx, 10*time.Second)
+	client, err := r.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		return err
 	}

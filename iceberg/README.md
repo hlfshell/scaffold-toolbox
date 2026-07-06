@@ -1,6 +1,8 @@
 # scaffold toolbox iceberg
 
-Iceberg-compatible local data lake module placeholder.
+Local Iceberg lakehouse stack for scaffold. It composes MinIO for object
+storage, an Iceberg REST catalog, and Trino configured with an Iceberg
+catalog on a shared Docker network.
 
 ## Install
 
@@ -12,4 +14,13 @@ go get github.com/hlfshell/scaffold-toolbox/iceberg
 import "github.com/hlfshell/scaffold-toolbox/iceberg"
 ```
 
-Status: planned. This module should compose existing services, support inherited labels, and provide local object storage, catalog, and query helpers.
+## Example
+
+```go
+lake, err := iceberg.NewStack("lake", iceberg.WithBucket("warehouse"))
+if err != nil {
+	return err
+}
+
+stack := scaffold.NewStack("app", scaffold.WithServices(lake))
+```

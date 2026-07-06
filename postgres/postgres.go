@@ -115,7 +115,7 @@ func (p *Postgres) Create(ctx context.Context) error {
 		return fmt.Errorf("postgres failed to become ready: %w", err)
 	}
 
-	err = p.Preload()
+	err = p.Preload(ctx)
 	if err != nil {
 		p.container.Cleanup(context.WithoutCancel(ctx))
 		return err
@@ -128,10 +128,10 @@ func (p *Postgres) Create(ctx context.Context) error {
 ConnectWithTimeout repeatedly calls Connect until a connection succeeds
 or the timeout is reached.
 */
-func (p *Postgres) ConnectWithTimeout(timeout time.Duration) (*sql.DB, error) {
+func (p *Postgres) ConnectWithTimeout(ctx context.Context, timeout time.Duration) (*sql.DB, error) {
 	var db *sql.DB
 
-	err := scaffold.WaitFunc(context.Background(), timeout, 50*time.Millisecond, func(ctx context.Context) error {
+	err := scaffold.WaitFunc(ctx, timeout, 50*time.Millisecond, func(ctx context.Context) error {
 		var err error
 		db, err = p.connectContext(ctx)
 		return err
@@ -147,8 +147,8 @@ func (p *Postgres) ConnectWithTimeout(timeout time.Duration) (*sql.DB, error) {
 Connect opens and pings a database connection using the assigned host
 port.
 */
-func (p *Postgres) Connect() (*sql.DB, error) {
-	return p.connectContext(context.Background())
+func (p *Postgres) Connect(ctx context.Context) (*sql.DB, error) {
+	return p.connectContext(ctx)
 }
 
 func (p *Postgres) connectContext(ctx context.Context) (*sql.DB, error) {
@@ -258,12 +258,12 @@ func (p *Postgres) WithSQLFile(path string) *Postgres {
 /*
 Preload runs all registered SQL preload functions.
 */
-func (p *Postgres) Preload() error {
+func (p *Postgres) Preload(ctx context.Context) error {
 	if len(p.preloads) == 0 {
 		return nil
 	}
 
-	db, err := p.ConnectWithTimeout(10 * time.Second)
+	db, err := p.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		return err
 	}

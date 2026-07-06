@@ -27,7 +27,7 @@ func TestPostgresCreateConnectCleanup(t *testing.T) {
 	}
 	defer postgres.Cleanup(ctx)
 
-	db, err := postgres.ConnectWithTimeout(10 * time.Second)
+	db, err := postgres.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 # scaffold toolbox ollama
 
-Ollama service module placeholder.
+Ollama service for scaffold. It starts the official Ollama container, exposes
+the local API endpoint, and can pull models as part of stack startup.
 
 ## Install
 
@@ -12,4 +13,13 @@ go get github.com/hlfshell/scaffold-toolbox/ollama
 import "github.com/hlfshell/scaffold-toolbox/ollama"
 ```
 
-Status: planned. This module should implement `scaffold.Service`, support inherited labels, support shared Docker networks, expose endpoint helpers, and include model preload helpers.
+## Example
+
+```go
+models, err := ollama.NewOllama("models", "latest")
+if err != nil {
+	return err
+}
+
+models.WithModel("nomic-embed-text")
+```

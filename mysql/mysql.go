@@ -128,7 +128,7 @@ func (m *Mysql) Create(ctx context.Context) error {
 		return fmt.Errorf("mysql failed to become ready: %w", err)
 	}
 
-	err = m.Preload()
+	err = m.Preload(ctx)
 	if err != nil {
 		m.container.Cleanup(context.WithoutCancel(ctx))
 		return err
@@ -141,8 +141,8 @@ func (m *Mysql) Create(ctx context.Context) error {
 Connect opens and pings a database connection using the assigned host
 port.
 */
-func (m *Mysql) Connect() (*sql.DB, error) {
-	return m.connectContext(context.Background())
+func (m *Mysql) Connect(ctx context.Context) (*sql.DB, error) {
+	return m.connectContext(ctx)
 }
 
 func (m *Mysql) connectContext(ctx context.Context) (*sql.DB, error) {
@@ -173,10 +173,10 @@ func (m *Mysql) connectContext(ctx context.Context) (*sql.DB, error) {
 ConnectWithTimeout repeatedly calls Connect until a connection succeeds
 or the timeout is reached.
 */
-func (m *Mysql) ConnectWithTimeout(timeout time.Duration) (*sql.DB, error) {
+func (m *Mysql) ConnectWithTimeout(ctx context.Context, timeout time.Duration) (*sql.DB, error) {
 	var db *sql.DB
 
-	err := scaffold.WaitFunc(context.Background(), timeout, 50*time.Millisecond, func(ctx context.Context) error {
+	err := scaffold.WaitFunc(ctx, timeout, 50*time.Millisecond, func(ctx context.Context) error {
 		var err error
 		db, err = m.connectContext(ctx)
 		return err
@@ -245,12 +245,12 @@ func (m *Mysql) WithSQLFile(path string) *Mysql {
 /*
 Preload runs all registered SQL preload functions.
 */
-func (m *Mysql) Preload() error {
+func (m *Mysql) Preload(ctx context.Context) error {
 	if len(m.preloads) == 0 {
 		return nil
 	}
 
-	db, err := m.ConnectWithTimeout(10 * time.Second)
+	db, err := m.ConnectWithTimeout(ctx, 10*time.Second)
 	if err != nil {
 		return err
 	}
