@@ -42,3 +42,16 @@ workflows, err := workflows.NewStack("workflows",
 	workflows.WithSSH("", string(publicKey)),
 )
 ```
+
+The local image registry options are also passed through:
+
+```go
+workflows, err := workflows.NewStack("workflows",
+	workflows.WithRegistry(""),
+	workflows.WithDockerfileImage("./Dockerfile", "jobs/worker:dev"),
+)
+```
+
+After startup, use `workflows.RegistryImage("jobs/worker:dev")` in generated
+Workflow manifests or call `PushImage` / `BuildAndPushImage` for later
+updates.

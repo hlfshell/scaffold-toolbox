@@ -42,3 +42,16 @@ gitops, err := argocd.NewStack("gitops",
 	argocd.WithSSH("", string(publicKey)),
 )
 ```
+
+The local image registry options are also passed through:
+
+```go
+gitops, err := argocd.NewStack("gitops",
+	argocd.WithRegistry(""),
+	argocd.WithDockerfileImage("./Dockerfile", "app/api:dev"),
+)
+```
+
+After startup, use `gitops.RegistryImage("app/api:dev")` in generated
+Application manifests or call `PushImage` / `BuildAndPushImage` for later
+updates.

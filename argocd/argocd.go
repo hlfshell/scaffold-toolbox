@@ -93,6 +93,22 @@ func WithSSH(hostPort string, publicKeys ...string) Option {
 	return WithClusterOptions(kubernetes.WithSSH(hostPort, publicKeys...))
 }
 
+func WithRegistry(hostPort string) Option {
+	return WithClusterOptions(kubernetes.WithRegistry(hostPort))
+}
+
+func WithRegistryImage(image string, tag string) Option {
+	return WithClusterOptions(kubernetes.WithRegistryImage(image, tag))
+}
+
+func WithLocalImage(localImage string, clusterImage string) Option {
+	return WithClusterOptions(kubernetes.WithLocalImage(localImage, clusterImage))
+}
+
+func WithDockerfileImage(dockerfile string, clusterImage string) Option {
+	return WithClusterOptions(kubernetes.WithDockerfileImage(dockerfile, clusterImage))
+}
+
 func WithReadyTimeout(timeout time.Duration) Option {
 	return WithClusterOptions(kubernetes.WithReadyTimeout(timeout))
 }
@@ -223,6 +239,34 @@ func (s *Stack) SSHAddress() string {
 
 func (s *Stack) Status(ctx context.Context) ([]byte, error) {
 	return s.cluster.Status(ctx)
+}
+
+func (s *Stack) RegistryAddress() string {
+	return s.cluster.RegistryAddress()
+}
+
+func (s *Stack) RegistryInternalAddress() string {
+	return s.cluster.RegistryInternalAddress()
+}
+
+func (s *Stack) RegistryImage(image string) string {
+	return s.cluster.RegistryImage(image)
+}
+
+func (s *Stack) RegistryDockerConfigJSON() ([]byte, error) {
+	return s.cluster.RegistryDockerConfigJSON()
+}
+
+func (s *Stack) RegistryEnv() map[string]string {
+	return s.cluster.RegistryEnv()
+}
+
+func (s *Stack) PushImage(ctx context.Context, localImage string, clusterImage string) (kubernetes.PushedImage, error) {
+	return s.cluster.PushImage(ctx, localImage, clusterImage)
+}
+
+func (s *Stack) BuildAndPushImage(ctx context.Context, dockerfile string, clusterImage string) (kubernetes.PushedImage, string, error) {
+	return s.cluster.BuildAndPushImage(ctx, dockerfile, clusterImage)
 }
 
 func (s *Stack) recordCRDs(ctx context.Context) error {
