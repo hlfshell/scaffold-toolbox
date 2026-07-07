@@ -14,23 +14,35 @@ privileged container and applies user-provided YAML through kubectl
 inside the container.
 */
 type Cluster struct {
-	container      *scaffoldcontainer.Container
-	sshContainer   *scaffoldcontainer.Container
-	name           string
-	tag            string
-	port           string
-	namespace      string
-	kubeconfigPath string
-	networkName    string
-	networkCreated bool
-	manifests      []manifest
-	sshPort        string
-	labels         map[string]string
-	k3sArgs        []string
-	ssh            sshConfig
-	sshTempDir     string
-	readyTimeout   time.Duration
-	rolloutTimeout time.Duration
+	container       *scaffoldcontainer.Container
+	registry        *scaffoldcontainer.Container
+	sshContainer    *scaffoldcontainer.Container
+	name            string
+	tag             string
+	port            string
+	namespace       string
+	kubeconfigPath  string
+	networkName     string
+	networkCreated  bool
+	manifests       []manifest
+	images          []Image
+	sshPort         string
+	registryPort    string
+	labels          map[string]string
+	k3sArgs         []string
+	registryConfig  registryConfig
+	ssh             sshConfig
+	sshTempDir      string
+	registryTempDir string
+	readyTimeout    time.Duration
+	rolloutTimeout  time.Duration
+}
+
+type registryConfig struct {
+	enabled  bool
+	hostPort string
+	image    string
+	tag      string
 }
 
 type sshConfig struct {
@@ -52,6 +64,10 @@ func NewCluster(name string, options ...Option) (*Cluster, error) {
 		name:   name,
 		tag:    "latest",
 		labels: map[string]string{},
+		registryConfig: registryConfig{
+			image: "registry",
+			tag:   "2",
+		},
 		ssh: sshConfig{
 			image: "alpine/k8s",
 			tag:   "1.30.6",
@@ -64,6 +80,11 @@ func NewCluster(name string, options ...Option) (*Cluster, error) {
 	}
 	if cluster.ssh.enabled && len(cluster.ssh.authorizedKeys) == 0 {
 		return nil, fmt.Errorf("kubernetes SSH requires at least one authorized public key")
+	}
+	if cluster.registryConfig.enabled {
+		if err := cluster.prepareRegistryConfig(); err != nil {
+			return nil, err
+		}
 	}
 
 	containerOptions := []scaffoldcontainer.ContainerOption{
@@ -81,12 +102,27 @@ func NewCluster(name string, options ...Option) (*Cluster, error) {
 			containerOptions = append(containerOptions, scaffoldcontainer.WithBind(manifest.source, manifest.containerPath))
 		}
 	}
+	if cluster.registryConfig.enabled {
+		containerOptions = append(containerOptions, scaffoldcontainer.WithBind(cluster.registryTempDir, "/etc/rancher/k3s"))
+	}
 
 	container, err := scaffoldcontainer.NewContainer(name, "rancher/k3s", containerOptions...)
 	if err != nil {
 		return nil, err
 	}
 	cluster.container = container
+	if cluster.registryConfig.enabled {
+		registry, err := scaffoldcontainer.NewContainer(
+			cluster.registryContainerName(),
+			cluster.registryConfig.image,
+			scaffoldcontainer.WithTag(cluster.registryConfig.tag),
+			scaffoldcontainer.WithPort("5000", cluster.registryConfig.hostPort),
+		)
+		if err != nil {
+			return nil, err
+		}
+		cluster.registry = registry
+	}
 
 	return cluster, nil
 }
@@ -98,6 +134,9 @@ func (c *Cluster) Name() string {
 func (c *Cluster) SetLabels(labels map[string]string) {
 	c.labels = merge(c.labels, labels)
 	c.container.SetLabels(labels)
+	if c.registry != nil {
+		c.registry.SetLabels(labels)
+	}
 }
 
 func (c *Cluster) SetNamePrefix(prefix string) {
@@ -107,9 +146,16 @@ func (c *Cluster) SetNamePrefix(prefix string) {
 func (c *Cluster) SetNetwork(name string) {
 	c.networkName = name
 	c.container.SetNetwork(name)
+	if c.registry != nil {
+		c.registry.SetNetwork(name)
+	}
 	if c.sshContainer != nil {
 		c.sshContainer.SetNetwork(name)
 	}
+}
+
+func (c *Cluster) registryContainerName() string {
+	return c.name + "-registry"
 }
 
 func (c *Cluster) command() []string {

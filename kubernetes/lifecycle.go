@@ -16,7 +16,7 @@ Create starts the k3s container, waits for the Kubernetes API, applies
 registered manifests, and waits for rollouts.
 */
 func (c *Cluster) Create(ctx context.Context) error {
-	if c.ssh.enabled && c.networkName == "" {
+	if (c.ssh.enabled || c.registryConfig.enabled) && c.networkName == "" {
 		c.networkName = c.name + "-network"
 		created, err := scaffoldcontainer.CreateNetwork(ctx, c.networkName, c.labels)
 		if err != nil {
@@ -24,6 +24,15 @@ func (c *Cluster) Create(ctx context.Context) error {
 		}
 		c.networkCreated = created
 		c.container.SetNetwork(c.networkName)
+	}
+
+	if err := c.startRegistry(ctx); err != nil {
+		c.cleanupAfterCreateFailure(ctx)
+		return err
+	}
+	if err := c.preloadImages(ctx); err != nil {
+		c.cleanupAfterCreateFailure(ctx)
+		return err
 	}
 
 	err := c.container.Start(ctx)
@@ -68,6 +77,14 @@ func (c *Cluster) Create(ctx context.Context) error {
 			c.cleanupAfterCreateFailure(ctx)
 			return fmt.Errorf("failed to create namespace %s: %w", c.namespace, err)
 		}
+		err = scaffold.WaitFunc(ctx, 30*time.Second, 500*time.Millisecond, func(ctx context.Context) error {
+			_, err := c.Kubectl(ctx, "get", "serviceaccount", "default", "-n", c.namespace)
+			return err
+		})
+		if err != nil {
+			c.cleanupAfterCreateFailure(ctx)
+			return fmt.Errorf("namespace %s did not become ready: %w", c.namespace, err)
+		}
 	}
 
 	for _, manifest := range c.manifests {
@@ -101,6 +118,9 @@ func (c *Cluster) Cleanup(ctx context.Context) error {
 	if err := c.container.Cleanup(ctx); err != nil && firstErr == nil {
 		firstErr = err
 	}
+	if err := c.cleanupRegistry(ctx); err != nil && firstErr == nil {
+		firstErr = err
+	}
 	if c.networkCreated {
 		if err := scaffoldcontainer.RemoveNetwork(ctx, c.networkName); err != nil && firstErr == nil {
 			firstErr = err
@@ -122,6 +142,9 @@ func (c *Cluster) Env() map[string]string {
 	if c.sshPort != "" {
 		env["KUBE_SSH_ADDR"] = c.SSHAddress()
 	}
+	for key, value := range c.RegistryEnv() {
+		env[key] = value
+	}
 
 	return env
 }
@@ -132,6 +155,9 @@ func (c *Cluster) Endpoints() map[string]string {
 	}
 	if c.sshPort != "" {
 		endpoints[c.name+"-ssh"] = c.SSHAddress()
+	}
+	if c.RegistryAddress() != "" {
+		endpoints[c.name+"-registry"] = c.RegistryAddress()
 	}
 
 	return endpoints
@@ -144,6 +170,14 @@ func (c *Cluster) Logs(ctx context.Context) (logs.LogStreams, error) {
 	}
 
 	streams := logs.LogStreams{c.name: stream}
+	if c.registry != nil {
+		registryStream, err := c.registry.Logs(ctx)
+		if err != nil {
+			_ = streams.Close()
+			return nil, err
+		}
+		streams[c.name+"-registry"] = registryStream
+	}
 	if c.sshContainer != nil {
 		sshStream, err := c.sshContainer.Logs(ctx)
 		if err != nil {
@@ -160,6 +194,7 @@ func (c *Cluster) cleanupAfterCreateFailure(ctx context.Context) {
 	ctx = context.WithoutCancel(ctx)
 	_ = c.cleanupSSHBridge(ctx)
 	_ = c.container.Cleanup(ctx)
+	_ = c.cleanupRegistry(ctx)
 	if c.networkCreated {
 		_ = scaffoldcontainer.RemoveNetwork(ctx, c.networkName)
 		c.networkCreated = false

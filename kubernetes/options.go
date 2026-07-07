@@ -36,6 +36,60 @@ func WithManifest(path string) Option {
 }
 
 /*
+WithRegistry starts a local Docker registry beside the cluster. hostPort
+may be blank to let Docker assign a free host port.
+*/
+func WithRegistry(hostPort string) Option {
+	return func(cluster *Cluster) {
+		cluster.registryConfig.enabled = true
+		cluster.registryConfig.hostPort = hostPort
+	}
+}
+
+/*
+WithRegistryImage changes the local registry container image.
+*/
+func WithRegistryImage(image string, tag string) Option {
+	return func(cluster *Cluster) {
+		cluster.registryConfig.enabled = true
+		if image != "" {
+			cluster.registryConfig.image = image
+		}
+		if tag != "" {
+			cluster.registryConfig.tag = tag
+		}
+	}
+}
+
+/*
+WithLocalImage tags and pushes an existing local Docker image into the
+cluster registry before manifests are applied.
+*/
+func WithLocalImage(localImage string, clusterImage string) Option {
+	return func(cluster *Cluster) {
+		cluster.registryConfig.enabled = true
+		cluster.images = append(cluster.images, Image{
+			LocalImage:   localImage,
+			ClusterImage: clusterImage,
+		})
+	}
+}
+
+/*
+WithDockerfileImage builds the Dockerfile and pushes the result into the
+cluster registry before manifests are applied.
+*/
+func WithDockerfileImage(dockerfile string, clusterImage string) Option {
+	return func(cluster *Cluster) {
+		cluster.registryConfig.enabled = true
+		cluster.images = append(cluster.images, Image{
+			Dockerfile:   dockerfile,
+			ClusterImage: clusterImage,
+		})
+	}
+}
+
+/*
 WithSSH starts a companion SSH/kubectl container configured against the
 k3s API. Public keys are written to root's authorized_keys inside that
 companion container. hostPort may be blank to let Docker assign a free

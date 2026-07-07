@@ -31,10 +31,18 @@ data:
 `), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	dockerfilePath := filepath.Join(dir, "Dockerfile")
+	if err := os.WriteFile(dockerfilePath, []byte(`FROM busybox:1.36
+CMD ["sh", "-c", "while true; do sleep 3600; done"]
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
 
 	cluster, err := NewCluster("scaffold-test-kubernetes",
 		WithTag("v1.30.6-k3s1"),
 		WithNamespace("default"),
+		WithRegistry(""),
+		WithDockerfileImage(dockerfilePath, "scaffold/demo:latest"),
 		WithManifest(manifestPath),
 		WithReadyTimeout(3*time.Minute),
 		WithRolloutTimeout(2*time.Minute),
@@ -73,5 +81,33 @@ data:
 	}
 	if _, err := os.Stat(kubeconfigPath); err != nil {
 		t.Fatal(err)
+	}
+
+	if cluster.RegistryAddress() == "" {
+		t.Fatal("expected host registry address")
+	}
+	if cluster.RegistryInternalAddress() == "" {
+		t.Fatal("expected internal registry address")
+	}
+	if _, err := cluster.RegistryDockerConfigJSON(); err != nil {
+		t.Fatal(err)
+	}
+
+	pod := []byte(`apiVersion: v1
+kind: Pod
+metadata:
+  name: scaffold-registry-test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: app
+      image: ` + cluster.RegistryImage("scaffold/demo:latest") + `
+      imagePullPolicy: Always
+`)
+	if output, err := cluster.ApplyYAML(ctx, pod); err != nil {
+		t.Fatalf("apply registry pod failed: %v: %s", err, string(output))
+	}
+	if output, err := cluster.Kubectl(ctx, "wait", "--for=condition=Ready", "pod/scaffold-registry-test", "--timeout=2m"); err != nil {
+		t.Fatalf("registry pod did not become ready: %v: %s", err, string(output))
 	}
 }

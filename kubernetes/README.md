@@ -6,6 +6,8 @@
 
 `Kubeconfig` or `WriteKubeconfig` gets you a Kubernetes config that points host tools at the containerized k3s API. The former returns the config bytes; the latter writes them to a file. Neither is called automatically.
 
+You can enable a hosted Docker registry to push your own container images or Dockerfiles onto the cluster for reference by your manifest files. See [Local image registry](#local-image-registry) for more information on this.
+
 ## Install
 
 ```bash
@@ -114,6 +116,57 @@ For local kubectl after startup:
 ```bash
 KUBECONFIG=./kubeconfig.dev kubectl get pods -n dev
 ```
+
+## Local image registry
+
+`WithRegistry` starts a local Docker registry on the same Docker network as
+the cluster and configures k3s to pull from it over the internal registry
+address.
+
+```go
+cluster, err := kubernetes.NewCluster("cluster",
+	kubernetes.WithNamespace("dev"),
+	kubernetes.WithRegistry(""),
+	kubernetes.WithDockerfileImage("./Dockerfile", "app/api:dev"),
+)
+if err != nil {
+	return err
+}
+```
+
+After `Create`, use `RegistryImage` when writing or patching manifests:
+
+```go
+image := cluster.RegistryImage("app/api:dev")
+```
+
+The host Docker daemon pushes to `RegistryAddress`, while Kubernetes pulls
+from `RegistryInternalAddress`:
+
+```go
+fmt.Println(cluster.RegistryAddress())
+fmt.Println(cluster.RegistryInternalAddress())
+fmt.Println(cluster.RegistryEnv())
+```
+
+You can also push images after the cluster is running:
+
+```go
+pushed, err := cluster.PushImage(ctx, "api:local", "app/api:dev")
+if err != nil {
+	return err
+}
+fmt.Println(pushed.ClusterImage)
+
+pushed, logs, err := cluster.BuildAndPushImage(ctx, "./Dockerfile", "app/worker:dev")
+if err != nil {
+	fmt.Println(logs)
+	return err
+}
+```
+
+`RegistryDockerConfigJSON` returns a host-side Docker `config.json` payload
+for tools that expect one. The default registry has no username or password.
 
 To expose SSH, pass at least one authorized public key. This starts a companion SSH/kubectl container on the same Docker network as k3s. It does not SSH into the `rancher/k3s` container itself; a companion container gets a generated kubeconfig mounted into `/root/.kube/config`, so you can SSH in and run `kubectl` against the k3s cluster.
 
