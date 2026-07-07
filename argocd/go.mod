@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/hlfshell/scaffold v0.0.1
-	github.com/hlfshell/scaffold-toolbox/kubernetes v0.0.1
+	github.com/hlfshell/scaffold-toolbox/kubernetes v0.0.2
 )
 
 require (
