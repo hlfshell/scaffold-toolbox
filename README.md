@@ -51,6 +51,9 @@ Orchestration:
 Stacks:
 
 - RAG stack - a ready-made Postgres, Qdrant, and MinIO environment for document and retrieval apps.
+- Workflow stack - Argo Workflows on a local k3s cluster with manifest and image loading helpers.
+- Analytics stack - ClickHouse and Trino together for local analytical storage and SQL query testing.
+- Data lake stack - MinIO, Iceberg REST catalog, and Trino wired into a local lakehouse.
 
 Each module has its own README with the current status and usage notes.
 

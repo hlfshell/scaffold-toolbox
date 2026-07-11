@@ -1,36 +1,12 @@
 # scaffold stacks
 
-Ready-made stacks compose existing scaffold harnesses. They do not duplicate service implementation.
+Ready-made stacks compose existing scaffold toolbox services into useful local environments. Each stack lives in its own subpackage so applications can import only the environment they need.
 
-## Install
+## Available stacks
 
-```bash
-go get github.com/hlfshell/scaffold-toolbox/stacks
-```
+- `github.com/hlfshell/scaffold-toolbox/stacks/rag` - Postgres, Qdrant, and MinIO for retrieval and document apps.
+- `github.com/hlfshell/scaffold-toolbox/stacks/workflow` - Argo Workflows on a local k3s cluster with manifest and image helpers.
+- `github.com/hlfshell/scaffold-toolbox/stacks/analytics` - ClickHouse and Trino for analytical storage and SQL query testing.
+- `github.com/hlfshell/scaffold-toolbox/stacks/datalake` - MinIO, Iceberg REST catalog, and Trino wired into a local lakehouse.
 
-```go
-import "github.com/hlfshell/scaffold-toolbox/stacks"
-```
-
-## RAG stack
-
-The RAG stack includes Postgres, Qdrant, and MinIO for local RAG app development, agent tests, embedding tests, and document/object workflows.
-
-```go
-rag, err := stacks.NewRAGStack("rag-dev",
-	stacks.WithPostgresSQL("create table documents (id serial primary key, body text);"),
-	stacks.WithQdrantCollection(qdrant.CollectionConfig{Name: "documents", Size: 1536}),
-	stacks.WithMinIOBucket("documents"),
-)
-if err != nil {
-	return err
-}
-
-err = rag.Create(ctx)
-if err != nil {
-	return err
-}
-defer rag.Cleanup(context.WithoutCancel(ctx))
-```
-
-Cleanup is delegated to the underlying scaffold stack.
+The AWS toolbox is intentionally not represented here as a stack package. It is already a complete MiniStack-backed service with resource, ECS, image, and SDK helpers. App-shaped AWS setups are documented in `aws/examples` so the base AWS API stays the source of truth.

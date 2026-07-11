@@ -1,4 +1,4 @@
-package stacks
+package rag
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 )
 
 /*
-RAGStack is a ready-made stack for local retrieval-augmented generation
+Stack is a ready-made stack for local retrieval-augmented generation
 development. It composes Postgres, Qdrant, and MinIO.
 */
-type RAGStack struct {
+type Stack struct {
 	Stack    *scaffold.Stack
 	name     string
 	Postgres *postgres.Postgres
@@ -22,14 +22,14 @@ type RAGStack struct {
 	MinIO    *minio.MinIO
 }
 
-// RAGOption configures the RAG stack before the underlying Stack is built.
-type RAGOption func(*RAGStack)
+// Option configures the RAG stack before the underlying Stack is built.
+type Option func(*Stack)
 
 /*
-NewRAGStack creates a local RAG development stack using the toolbox
+NewStack creates a local RAG development stack using the toolbox
 harnesses. The stack does not duplicate service implementation.
 */
-func NewRAGStack(name string, options ...RAGOption) (*RAGStack, error) {
+func NewStack(name string, options ...Option) (*Stack, error) {
 	db, err := postgres.NewPostgres(name+"-postgres", "latest", "scaffold", "scaffold", "scaffold")
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func NewRAGStack(name string, options ...RAGOption) (*RAGStack, error) {
 		return nil, err
 	}
 
-	rag := &RAGStack{
+	rag := &Stack{
 		name:     name,
 		Postgres: db,
 		Qdrant:   vectors,
@@ -68,29 +68,29 @@ func NewRAGStack(name string, options ...RAGOption) (*RAGStack, error) {
 /*
 Name returns the stack name.
 */
-func (r *RAGStack) Name() string {
+func (r *Stack) Name() string {
 	return r.name
 }
 
 /*
 SetLabels passes inherited labels to the underlying stack.
 */
-func (r *RAGStack) SetLabels(labels map[string]string) {
+func (r *Stack) SetLabels(labels map[string]string) {
 	r.Stack.SetLabels(labels)
 }
 
 /*
 SetNamePrefix passes an inherited name prefix to the underlying stack.
 */
-func (r *RAGStack) SetNamePrefix(prefix string) {
+func (r *Stack) SetNamePrefix(prefix string) {
 	r.Stack.SetNamePrefix(prefix)
 }
 
 /*
 WithPostgresSQL registers SQL to preload into the Postgres service.
 */
-func WithPostgresSQL(sql string) RAGOption {
-	return func(r *RAGStack) {
+func WithPostgresSQL(sql string) Option {
+	return func(r *Stack) {
 		r.Postgres.WithSQL(sql)
 	}
 }
@@ -99,8 +99,8 @@ func WithPostgresSQL(sql string) RAGOption {
 WithQdrantCollection registers a Qdrant collection to create during
 preload.
 */
-func WithQdrantCollection(config qdrant.CollectionConfig) RAGOption {
-	return func(r *RAGStack) {
+func WithQdrantCollection(config qdrant.CollectionConfig) Option {
+	return func(r *Stack) {
 		r.Qdrant.WithCollection(config)
 	}
 }
@@ -108,8 +108,8 @@ func WithQdrantCollection(config qdrant.CollectionConfig) RAGOption {
 /*
 WithMinIOBucket registers a MinIO bucket to create during preload.
 */
-func WithMinIOBucket(bucket string) RAGOption {
-	return func(r *RAGStack) {
+func WithMinIOBucket(bucket string) Option {
+	return func(r *Stack) {
 		r.MinIO.WithBucket(bucket)
 	}
 }
@@ -117,7 +117,7 @@ func WithMinIOBucket(bucket string) RAGOption {
 /*
 Create creates the services in the underlying Scaffold stack with ctx.
 */
-func (r *RAGStack) Create(ctx context.Context) error {
+func (r *Stack) Create(ctx context.Context) error {
 	return r.Stack.Create(ctx)
 }
 
@@ -125,45 +125,45 @@ func (r *RAGStack) Create(ctx context.Context) error {
 IsRunning returns true if any matching container for this stack is
 running.
 */
-func (r *RAGStack) IsRunning(ctx context.Context) (bool, error) {
+func (r *Stack) IsRunning(ctx context.Context) (bool, error) {
 	return r.Stack.IsRunning(ctx)
 }
 
 /*
 Resources returns matching Docker resources for this preset stack.
 */
-func (r *RAGStack) Resources(ctx context.Context) (scaffold.ResourceStatus, error) {
+func (r *Stack) Resources(ctx context.Context) (scaffold.ResourceStatus, error) {
 	return r.Stack.Resources(ctx)
 }
 
 /*
 Env returns environment variables from the underlying stack.
 */
-func (r *RAGStack) Env() map[string]string {
+func (r *Stack) Env() map[string]string {
 	return r.Stack.Env()
 }
 
 /*
 Endpoints returns endpoints from the underlying stack.
 */
-func (r *RAGStack) Endpoints() map[string]string {
+func (r *Stack) Endpoints() map[string]string {
 	return r.Stack.Endpoints()
 }
 
 /*
 Cleanup cleans up the underlying Scaffold stack with ctx.
 */
-func (r *RAGStack) Cleanup(ctx context.Context) error {
+func (r *Stack) Cleanup(ctx context.Context) error {
 	return r.Stack.Cleanup(ctx)
 }
 
 /*
 Logs returns logs from every service in the preset stack.
 */
-func (r *RAGStack) Logs(ctx context.Context) (logs.LogStreams, error) {
+func (r *Stack) Logs(ctx context.Context) (logs.LogStreams, error) {
 	return r.Stack.Logs(ctx)
 }
 
-var _ scaffold.Service = (*RAGStack)(nil)
-var _ scaffold.LabelAttachable = (*RAGStack)(nil)
-var _ scaffold.NamePrefixAttachable = (*RAGStack)(nil)
+var _ scaffold.Service = (*Stack)(nil)
+var _ scaffold.LabelAttachable = (*Stack)(nil)
+var _ scaffold.NamePrefixAttachable = (*Stack)(nil)

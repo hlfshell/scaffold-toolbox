@@ -1,9 +1,9 @@
-package stacks
+package rag
 
 import "testing"
 
-func TestNewRAGStackBuildsComposedServices(t *testing.T) {
-	stack, err := NewRAGStack("scaffold-test-rag")
+func TestNewStackBuildsComposedServices(t *testing.T) {
+	stack, err := NewStack("scaffold-test-rag")
 	if err != nil {
 		t.Fatal(err)
 	}

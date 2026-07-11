@@ -2,6 +2,8 @@
 
 MiniStack-backed local AWS service for scaffold. It starts a single local AWS-compatible endpoint on port 4566, exposes SDK configuration helpers, and can create common resources such as S3 buckets, SQS queues, and SNS topics. Services can be picked per your needs and configured to work with your setup.
 
+Copyable app-shaped setups live in `examples/`. Those examples intentionally use this package directly instead of a separate AWS stack wrapper, so MiniStack service configuration, ECS behavior, local image publishing, S3 helpers, and SDK config stay in one place.
+
 ## Install
 
 ```bash
@@ -198,6 +200,13 @@ if err != nil {
 	return err
 }
 fmt.Println(string(body))
+```
+
+For common seed data, use the stack helpers:
+
+```go
+err = cloud.UploadObjectString(ctx, "documents", "notes/hello.txt", "hello")
+err = cloud.UploadFile(ctx, "documents", "fixtures/report.json", "./fixtures/report.json")
 ```
 
 The imports for that example use aliases to keep the toolbox package and
