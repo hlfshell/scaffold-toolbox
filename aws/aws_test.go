@@ -192,6 +192,11 @@ func TestAWSConnectionConfig(t *testing.T) {
 		t.Fatalf("unexpected container endpoint: %s", container.EndpointURL)
 	}
 
+	hostEnv := stack.HostEnv()
+	if hostEnv["SQS_JOBS_URL"] != "http://127.0.0.1:4566/000000000000/jobs" {
+		t.Fatalf("expected host queue URL to use host endpoint, got %s", hostEnv["SQS_JOBS_URL"])
+	}
+
 	env := stack.ContainerEnv()
 	expected := map[string]string{
 		"AWS_ENDPOINT_URL":        "http://cloud-ministack:4566",
@@ -201,7 +206,7 @@ func TestAWSConnectionConfig(t *testing.T) {
 		"AWS_SECRET_ACCESS_KEY":   "test",
 		"AWS_S3_FORCE_PATH_STYLE": "true",
 		"S3_FORCE_PATH_STYLE":     "true",
-		"SQS_JOBS_URL":            "http://127.0.0.1:4566/000000000000/jobs",
+		"SQS_JOBS_URL":            "http://cloud-ministack:4566/000000000000/jobs",
 		"SNS_EVENTS_ARN":          "arn:aws:sns:us-east-1:000000000000:events",
 	}
 	for key, value := range expected {

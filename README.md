@@ -30,7 +30,7 @@ Search and vectors:
 Object storage and cloud:
 
 - MinIO - S3-compatible storage for files, documents, model artifacts, and test uploads.
-- AWS - MiniStack-backed local AWS stack with setup helpers for buckets, queues, and topics.
+- AWS - [MiniStack](https://ministack.org/)-backed local AWS stack with setup helpers for common AWS resources, SDK config, ECS-style containers, and local image workflows.
 
 Data platforms:
 
@@ -56,18 +56,8 @@ Each module has its own README with the current status and usage notes.
 
 ## Testing
 
-The default toolbox suite runs compile checks and Docker smoke tests that are
-reasonable for day-to-day development:
+Run the toolbox test script from the repository root:
 
 ```bash
-go test ./postgres/... ./mysql/... ./redis/... ./memcached/... ./qdrant/... ./minio/... ./stacks/... ./mongo/... ./clickhouse/... ./weaviate/... ./trino/... ./iceberg/... ./aws/... ./ollama/... ./litellm/... ./kubernetes/... ./argocd/... ./argo-workflows/...
-```
-
-Some tests are gated because they start heavier control planes or model
-services:
-
-```bash
-SCAFFOLD_TOOLBOX_KUBERNETES_TESTS=1 go test ./kubernetes -count=1 -timeout 10m
-SCAFFOLD_TOOLBOX_ARGO_TESTS=1 go test ./argocd ./argo-workflows -count=1 -timeout 20m
-SCAFFOLD_TOOLBOX_LLM_TESTS=1 go test ./ollama ./litellm -count=1 -timeout 20m
+./test.sh
 ```

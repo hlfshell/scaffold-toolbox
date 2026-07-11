@@ -1,5 +1,7 @@
 package aws
 
+import "net/url"
+
 /*
 ConnectionConfig describes how an application should connect to the
 MiniStack AWS endpoint.
@@ -86,7 +88,7 @@ func (s *Stack) connection(endpoint string) ConnectionConfig {
 
 func (s *Stack) envForConnection(config ConnectionConfig) map[string]string {
 	env := config.Env()
-	for key, value := range s.resourceEnv() {
+	for key, value := range s.resourceEnv(config) {
 		env[key] = value
 	}
 	for key, value := range s.RegistryEnv() {
@@ -96,14 +98,32 @@ func (s *Stack) envForConnection(config ConnectionConfig) map[string]string {
 	return env
 }
 
-func (s *Stack) resourceEnv() map[string]string {
+func (s *Stack) resourceEnv(config ConnectionConfig) map[string]string {
 	env := map[string]string{}
 	for name, value := range s.queueURLs {
-		env[envKey("SQS", name, "URL")] = value
+		env[envKey("SQS", name, "URL")] = rewriteEndpointURL(value, config.EndpointURL)
 	}
 	for name, value := range s.topicARNs {
 		env[envKey("SNS", name, "ARN")] = value
 	}
 
 	return env
+}
+
+func rewriteEndpointURL(value string, endpoint string) string {
+	parsedValue, err := url.Parse(value)
+	if err != nil {
+		return value
+	}
+	parsedEndpoint, err := url.Parse(endpoint)
+	if err != nil {
+		return value
+	}
+	if parsedValue.Scheme == "" || parsedValue.Host == "" || parsedEndpoint.Scheme == "" || parsedEndpoint.Host == "" {
+		return value
+	}
+
+	parsedValue.Scheme = parsedEndpoint.Scheme
+	parsedValue.Host = parsedEndpoint.Host
+	return parsedValue.String()
 }
