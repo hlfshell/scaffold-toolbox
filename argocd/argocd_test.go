@@ -14,9 +14,6 @@ import (
 )
 
 func TestArgoCDCreateStatusCleanup(t *testing.T) {
-	if os.Getenv("SCAFFOLD_TOOLBOX_ARGO_TESTS") != "1" {
-		t.Skip("set SCAFFOLD_TOOLBOX_ARGO_TESTS=1 to run Argo CD integration tests")
-	}
 	if !scaffoldcontainer.DockerAvailable() {
 		t.Skip("docker is not available")
 	}

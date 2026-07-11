@@ -269,9 +269,6 @@ func TestAWSECSContainerDefinition(t *testing.T) {
 }
 
 func TestAWSECSRunTaskIntegration(t *testing.T) {
-	if os.Getenv("SCAFFOLD_AWS_ECS_INTEGRATION") != "1" {
-		t.Skip("set SCAFFOLD_AWS_ECS_INTEGRATION=1 to run the live ECS Docker integration")
-	}
 	if !scaffoldcontainer.DockerAvailable() {
 		t.Skip("docker is not available")
 	}

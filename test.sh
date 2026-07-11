@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export SCAFFOLD_TOOLBOX_KUBERNETES_TESTS=1
-export SCAFFOLD_TOOLBOX_ARGO_TESTS=1
-export SCAFFOLD_TOOLBOX_LLM_TESTS=1
-export SCAFFOLD_AWS_ECS_INTEGRATION=1
-
 modules=(
   postgres
   mysql
