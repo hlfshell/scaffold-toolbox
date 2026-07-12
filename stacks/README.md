@@ -8,5 +8,3 @@ Ready-made stacks compose existing scaffold toolbox services into useful local e
 - `github.com/hlfshell/scaffold-toolbox/stacks/workflow` - Argo Workflows on a local k3s cluster with manifest and image helpers.
 - `github.com/hlfshell/scaffold-toolbox/stacks/analytics` - ClickHouse and Trino for analytical storage and SQL query testing.
 - `github.com/hlfshell/scaffold-toolbox/stacks/datalake` - MinIO, Iceberg REST catalog, and Trino wired into a local lakehouse.
-
-The AWS toolbox is intentionally not represented here as a stack package. It is already a complete MiniStack-backed service with resource, ECS, image, and SDK helpers. App-shaped AWS setups are documented in `aws/examples` so the base AWS API stays the source of truth.
